@@ -1,4 +1,3 @@
-import "./style.css";
 document.addEventListener('DOMContentLoaded', function () {
     const todoList = [
         { task: 'Gör läxan', completed: false },
