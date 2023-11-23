@@ -1,44 +1,76 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const todoList = [
-        { task: 'Gör läxan', completed: false },
-        { task: 'Träna', completed: false },
-        { task: 'Handla mat', completed: false }
-    ];
-
-    const taskInput = document.getElementById('task-input');
+    let todoList = JSON.parse(localStorage.getItem('todoList')) || [];
+    const todoForm = document.getElementById('todo-form');
     const todoListContainer = document.getElementById('todo-list');
+
+    const taskInput = createInputElement('text', 'Skapa en ny uppgift...', true);
+    const submitButton = createButtonElement('submit', '+');
+
+    todoForm.appendChild(taskInput);
+    todoForm.appendChild(submitButton);
+
+    renderTodoList();
+
+    submitButton.addEventListener('click', function () {
+        const inputValue = taskInput.value.trim();
+        if (inputValue !== "") {
+            const newId = Date.now();
+            todoList.push({ id: newId, task: inputValue, completed: false });
+            taskInput.value = '';
+            renderTodoList();
+            updateLocalStorage();
+        }
+    });
+
+    todoForm.addEventListener('submit', function (event) {
+        event.preventDefault(); 
+    });
 
     function renderTodoList() {
         todoListContainer.innerHTML = '';
-        todoList.forEach((todo, index) => {
-            const todoItem = document.createElement('li');
-            todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
-            todoItem.innerHTML = `
-                <span onclick="toggleDone(${index})">${todo.task}</span>
-                <button onclick="removeTask(${index})">X</button>
+        todoList.forEach(todo => {
+            const li = document.createElement('li');
+            li.className = todo.completed ? 'completed' : 'task';
+            li.setAttribute('data-id', todo.id);
+            li.innerHTML = `
+                <span onclick="toggleDone(${todo.id})">${todo.task}</span>
+                <button class="remove-btn" onclick="removeTask(${todo.id})">X</button>
             `;
-            todoListContainer.appendChild(todoItem);
+            todoListContainer.appendChild(li);
         });
     }
 
-    window.addTask = function () {
-        const newTask = taskInput.value.trim();
-        if (newTask) {
-            todoList.push({ task: newTask, completed: false });
-            taskInput.value = '';
+    function updateLocalStorage() {
+        localStorage.setItem('todoList', JSON.stringify(todoList));
+    }
+
+    function createInputElement(type, placeholder, required) {
+        const input = document.createElement('input');
+        input.type = type;
+        input.placeholder = placeholder;
+        input.required = required;
+        return input;
+    }
+
+    function createButtonElement(type, textContent) {
+        const button = document.createElement('button');
+        button.type = type;
+        button.textContent = textContent;
+        return button;
+    }
+
+    window.toggleDone = function (taskId) {
+        const todo = todoList.find(todo => todo.id === taskId);
+        if (todo) {
+            todo.completed = !todo.completed;
             renderTodoList();
+            updateLocalStorage();
         }
     };
 
-    window.toggleDone = function (index) {
-        todoList[index].completed = !todoList[index].completed;
+    window.removeTask = function (taskId) {
+        todoList = todoList.filter(todo => todo.id !== taskId);
         renderTodoList();
+        updateLocalStorage();
     };
-
-    window.removeTask = function (index) {
-        todoList.splice(index, 1);
-        renderTodoList();
-    };
-
-    renderTodoList();
 });
