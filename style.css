@@ -65,4 +65,5 @@ button.remove-btn {
   padding: 10px 14px;
   cursor: pointer;
   border-radius: 4px;
+  justify-content: end;
 }
